@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as applications from "../applications.js";
+import type * as coverLetters from "../coverLetters.js";
 import type * as embeddings from "../embeddings.js";
 import type * as jobs from "../jobs.js";
 import type * as matches from "../matches.js";
@@ -21,6 +23,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  applications: typeof applications;
+  coverLetters: typeof coverLetters;
   embeddings: typeof embeddings;
   jobs: typeof jobs;
   matches: typeof matches;

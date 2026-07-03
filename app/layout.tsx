@@ -8,6 +8,7 @@ import {
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ConvexClientProvider } from "./components/ConvexClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
+          <ConvexClientProvider>
           <header className="flex h-16 items-center justify-between border-b border-black/8 px-6 dark:border-white/[.145]">
             <span className="text-sm font-semibold tracking-tight">
               Career AI Agent
@@ -58,7 +60,8 @@ export default function RootLayout({
               </Show>
             </div>
           </header>
-          {children}
+            {children}
+          </ConvexClientProvider>
         </ClerkProvider>
       </body>
     </html>

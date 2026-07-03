@@ -448,6 +448,163 @@ const JOBS: SeedJob[] = [
   },
 ];
 
+/**
+ * Upsert a real candidate (user + profile + primary resume) by Clerk user id
+ * without touching job listings or other users. Re-running replaces the
+ * profile and resume. Run embeddings:backfill afterwards.
+ *
+ * `npx convex run seed:seedUser '{"clerkUserId": "user_..."}'`
+ */
+export const seedUser = internalMutation({
+  args: { clerkUserId: v.string() },
+  returns: v.object({ userId: v.id("users") }),
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    let user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", args.clerkUserId))
+      .unique();
+    const name = "Sonny Sangha";
+    const email = "sonny@papareact.com";
+    let userId;
+    if (user) {
+      userId = user._id;
+      await ctx.db.patch(userId, { name, email });
+    } else {
+      userId = await ctx.db.insert("users", {
+        clerkUserId: args.clerkUserId,
+        name,
+        email,
+      });
+    }
+
+    // Replace any existing profile, resume, and stale matches for this user.
+    const existingProfile = await ctx.db
+      .query("profiles")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .unique();
+    if (existingProfile) {
+      await ctx.db.delete(existingProfile._id);
+    }
+    const existingResumes = await ctx.db
+      .query("resumes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const resume of existingResumes) {
+      await ctx.db.delete(resume._id);
+    }
+    const existingMatches = await ctx.db
+      .query("matches")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const match of existingMatches) {
+      await ctx.db.delete(match._id);
+    }
+
+    await ctx.db.insert("profiles", {
+      userId,
+      headline:
+        "Senior Full-Stack Engineer & Developer Educator — React, Next.js, TypeScript, AI",
+      summary:
+        "Senior full-stack engineer with 10+ years of experience shipping production web apps and teaching modern development to millions of developers. Deep expertise in React, Next.js, TypeScript, and Node.js, with extensive recent work building AI-powered products: LLM agents, RAG pipelines, embeddings, and vector search. Founder-level ownership: has built and launched dozens of full products end to end, from data model and auth to polished UI and deployment. Strong communicator who leads teams, mentors engineers, and explains complex systems clearly.",
+      skills: [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Node.js",
+        "Tailwind CSS",
+        "PostgreSQL",
+        "Convex",
+        "GraphQL",
+        "AWS",
+        "Vercel",
+        "LLMs",
+        "Vector Search",
+        "React Native",
+        "Docker",
+        "Stripe",
+      ],
+      yearsOfExperience: 10,
+      location: "London, UK",
+      desiredRoles: [
+        "Senior Full-Stack Engineer",
+        "Staff Software Engineer",
+        "AI Product Engineer",
+        "Developer Advocate",
+        "Engineering Lead",
+      ],
+      openToRemote: true,
+      experience: [
+        {
+          company: "PAPA Technologies",
+          role: "Founder & Lead Engineer",
+          startYear: 2020,
+          description:
+            "Founded and run a developer education company teaching modern full-stack development (React, Next.js, TypeScript, AI) to a community of 1M+ developers. Designed and shipped dozens of production-grade apps and SaaS products end to end, including AI agents, RAG systems, and real-time collaborative tools.",
+        },
+        {
+          company: "UBS",
+          role: "Software Engineer",
+          startYear: 2017,
+          endYear: 2020,
+          description:
+            "Built internal trading and risk tooling on a large-scale JavaScript/TypeScript stack within a global investment bank. Worked across front-end platforms and API services with strict reliability and compliance requirements.",
+        },
+        {
+          company: "Freelance",
+          role: "Full-Stack Developer",
+          startYear: 2014,
+          endYear: 2017,
+          description:
+            "Delivered web applications for agencies and startups across e-commerce, media, and fintech.",
+        },
+      ],
+      education: [
+        {
+          school: "University of London",
+          degree: "BSc Computer Science",
+          year: 2014,
+        },
+      ],
+    });
+
+    await ctx.db.insert("resumes", {
+      userId,
+      title: "Sonny Sangha — Senior Full-Stack Engineer",
+      isPrimary: true,
+      updatedAt: now,
+      content: `# Sonny Sangha
+**Senior Full-Stack Engineer & Developer Educator** · London, UK · sonny@papareact.com
+
+## Summary
+Senior full-stack engineer (10+ YOE) and developer educator with an audience of 1M+ developers. Expert in React, Next.js, TypeScript, and Node.js; extensive recent work shipping AI products with LLM agents, embeddings, and vector search. Comfortable owning products end to end — architecture, backend, UI, auth, payments, and deployment.
+
+## Skills
+React · Next.js · TypeScript · Node.js · Tailwind CSS · PostgreSQL · Convex · GraphQL · AWS · Vercel · LLMs · Vector Search · React Native · Docker · Stripe
+
+## Experience
+### Founder & Lead Engineer — PAPA Technologies (2020–present)
+- Built and launched dozens of production full-stack apps and SaaS products end to end
+- Shipped AI-powered products: LLM agents, RAG pipelines, vector search, and realtime tools
+- Teach modern full-stack and AI development to a community of 1M+ developers
+- Led cohorts and mentored hundreds of engineers into professional roles
+
+### Software Engineer — UBS (2017–2020)
+- Built trading and risk tooling on a large-scale TypeScript stack in a global bank
+- Delivered high-reliability front-end platforms and API services under strict compliance
+
+### Full-Stack Developer — Freelance (2014–2017)
+- Delivered web apps for agencies and startups across e-commerce, media, and fintech
+
+## Education
+BSc Computer Science, University of London (2014)`,
+    });
+
+    return { userId };
+  },
+});
+
 export const run = internalMutation({
   args: {},
   returns: v.object({
