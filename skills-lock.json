@@ -47,6 +47,12 @@
       "sourceType": "github",
       "skillPath": "skills/features/clerk-webhooks/SKILL.md",
       "computedHash": "de12deda380be19d32d62c4106a6b78736cd4d9cc6dd5b214f6039853ad89e54"
+    },
+    "eve": {
+      "source": "vercel/eve",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "79a1e606ecf33eed33c1f3adc1cc266de391e19aa9237ca37e4f3aa3fba6b228"
     }
   }
 }
