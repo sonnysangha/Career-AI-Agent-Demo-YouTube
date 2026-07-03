@@ -11,6 +11,9 @@ const clerkClient = createClerkClient({
  * Authenticates browser requests using the Clerk session cookie (or bearer
  * token). Returns a user principal so user-scoped connections can bind OAuth
  * grants to the signed-in Clerk user.
+ *
+ * Chatting with the agent is a Pro-only feature, so Clerk sessions must also
+ * pass a Clerk Billing `has({ plan: "pro" })` entitlement check.
  */
 function clerkSession(): AuthFn<Request> {
   return async (request) => {
@@ -19,6 +22,10 @@ function clerkSession(): AuthFn<Request> {
 
     const auth = requestState.toAuth();
     if (!auth.userId) return null;
+
+    // Clerk Billing gate: signed-in users without the Pro plan are rejected
+    // here rather than falling through to the deploy/local-dev authenticators.
+    if (!auth.has({ plan: "pro" })) return null;
 
     const attributes: Record<string, string> = {};
     if (auth.sessionId) {
