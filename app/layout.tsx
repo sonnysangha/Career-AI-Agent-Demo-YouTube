@@ -36,14 +36,14 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
-          <header className="flex h-16 items-center justify-between border-b border-black/[.08] px-6 dark:border-white/[.145]">
+          <header className="flex h-16 items-center justify-between border-b border-black/8 px-6 dark:border-white/[.145]">
             <span className="text-sm font-semibold tracking-tight">
               Career AI Agent
             </span>
             <div className="flex items-center gap-3">
               <Show when="signed-out">
                 <SignInButton>
-                  <button className="h-9 rounded-full px-4 text-sm font-medium transition-colors hover:bg-black/[.04] dark:hover:bg-white/[.08]">
+                  <button className="h-9 rounded-full px-4 text-sm font-medium transition-colors hover:bg-black/4 dark:hover:bg-white/8">
                     Sign in
                   </button>
                 </SignInButton>
