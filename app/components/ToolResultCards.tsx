@@ -1,3 +1,7 @@
+"use client";
+
+import { ApplyButton, useAppliedJobIds } from "./ApplyButton";
+
 type JobCardData = {
   jobId: string;
   title: string;
@@ -120,6 +124,7 @@ function JobMeta({ job }: { job: JobCardData }) {
 }
 
 export function JobSearchResults({ output }: { output: SearchJobsOutput }) {
+  const appliedJobIds = useAppliedJobIds();
   if (output.jobs.length === 0) {
     return (
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -147,12 +152,20 @@ export function JobSearchResults({ output }: { output: SearchJobsOutput }) {
             </p>
           )}
           {job.skills && job.skills.length > 0 && (
-            <div className="mt-auto flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1">
               {job.skills.slice(0, 6).map((skill) => (
                 <SkillChip key={skill} skill={skill} tone="default" />
               ))}
             </div>
           )}
+          <div className="mt-auto pt-1">
+            <ApplyButton
+              jobId={job.jobId}
+              title={job.title}
+              company={job.company}
+              applied={appliedJobIds.has(job.jobId)}
+            />
+          </div>
         </div>
       ))}
     </div>
@@ -160,6 +173,7 @@ export function JobSearchResults({ output }: { output: SearchJobsOutput }) {
 }
 
 export function MatchResults({ output }: { output: FindMatchesOutput }) {
+  const appliedJobIds = useAppliedJobIds();
   if (output.matches.length === 0) {
     return (
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -194,6 +208,14 @@ export function MatchResults({ output }: { output: FindMatchesOutput }) {
                 ))}
               </div>
             )}
+            <div className="pt-1">
+              <ApplyButton
+                jobId={match.jobId}
+                title={match.title}
+                company={match.company}
+                applied={appliedJobIds.has(match.jobId)}
+              />
+            </div>
           </div>
         </div>
       ))}
